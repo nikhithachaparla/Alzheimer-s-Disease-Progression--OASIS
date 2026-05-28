@@ -1,2 +1,2 @@
-# Alzheimer-s-Disease-Progression--OASIS
+# Alzheimer-Disease-Progression--OASIS
 Longitudinal analysis of dementia progression using OASIS I–IV EHR data
