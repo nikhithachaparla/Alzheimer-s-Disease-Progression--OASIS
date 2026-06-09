@@ -79,3 +79,19 @@ Saint Louis University
 4. Data is included in `/data/oasis_longitudinal.xlsx`
 
 ## Project Structure
+
+notebooks/
+01_statistical_analysis.Rmd     ← R: stats analysis (Semester 1)
+02_regression_analysis.ipynb    ← Python: regression (Semester 2)
+03_ml_classification.html       ← ML classification results
+04_model_validation.html        ← Model validation
+05_scaling_dask.html            ← Dask scaling (Semester 3)
+06_results_summary.html         ← Final results summary
+data/
+oasis_cross_sectional.xlsx      ← OASIS-1 dataset
+oasis_longitudinal.xlsx         ← OASIS-2 dataset
+
+
+## Contact
+Nikhitha Chaparla | nikhitha.nikki.chaparla@gmail.com  
+linkedin.com/in/nikhithachaparla-a33247b7
