@@ -1,41 +1,81 @@
 # Alzheimer's Disease Progression — Longitudinal Analysis (OASIS I–IV)
 
 ## Overview
-Longitudinal study of dementia progression across 1,000+ real-world patient 
-records using the OASIS I–IV neuroimaging and clinical dataset. Analysis spans 
-three phases: statistical modeling, machine learning classification, and 
-full-dataset scaling.
+Multi-semester longitudinal research project examining dementia progression 
+using the OASIS neuroimaging and clinical dataset. Analysis spans three phases: 
+statistical modeling in R, machine learning classification in Python, and 
+full-dataset scaling using distributed computing.
 
-Co-authored with Dr. Bahareh Rahmani | Saint Louis University | Manuscript in preparation
+Co-authored with Dr. Bahareh Rahmani | Saint Louis University | 
+Manuscript in preparation
 
-## Research question
+## Research Question
 Can clinical and neuroimaging variables from the OASIS registry predict 
 dementia progression in a real-world longitudinal cohort?
 
-## Methods
-- **Semester 1:** Chi-square, logistic regression, p-value interpretation
-- **Semester 2:** SVM (RBF kernel), KNN, Random Forest — cross-validation, 
-  F1, confusion matrices
-- **Semester 3:** Scaling to full OASIS I–IV using Dask for distributed computing
+---
 
-## Key findings
-[Add 2–3 bullet points of your actual results — e.g., "Random Forest achieved 
-F1 of X on dementia classification"]
+## Semester 1 — Statistical Analysis (R)
+**Course:** HDS-5310 | **Dataset:** OASIS-1 Cross-sectional (416 participants)  
+**Methods:** t-test, chi-square, ANOVA, Tukey post-hoc, multivariate regression
+
+### Key Findings
+- nWBV was significantly lower in the AD group vs cognitively normal 
+  individuals (p < 0.001), confirming brain atrophy as a core AD biomarker
+- Strong negative correlation between age and nWBV (p < 0.001) — brain 
+  volume declines systematically with age
+- ANOVA confirmed nWBV declines across CDR severity categories 
+  (F(3,231) = 27.65, p < 0.001); largest decline between CDR 0 and CDR 2
+- Age, MMSE, and eTIV were significant independent predictors of nWBV 
+  in multivariate regression; sex was not significantly associated with diagnosis
+- Assumption testing conducted: Shapiro-Wilk normality, Levene's equality 
+  of variances, VIF for multicollinearity
+
+---
+
+## Semester 2 — Machine Learning Classification (Python)
+**Course:** HDS-5330 | **Dataset:** OASIS-2 Longitudinal  
+**Methods:** KNN, Naive Bayes, SVM (RBF kernel), Random Forest
+
+### Key Findings
+- RBF SVM achieved best reliable accuracy (85.33%) with strong specificity 
+  for cognitively normal classification (97% recall for Nondemented)
+- KNN: 82.7% accuracy | Naive Bayes: 81.3% accuracy
+- Random Forest showed 100% accuracy — identified as likely overfitting 
+  on small dataset; results interpreted with caution
+- nWBV and MMSE confirmed as strongest predictive features across all models
+- Converted group (later developed dementia) showed intermediate atrophy 
+  at baseline — validates nWBV as a potential early predictive biomarker
+
+---
+
+## Semester 3 — Scaling to Full OASIS I–IV (In Progress)
+**Dataset:** Complete OASIS I–IV longitudinal dataset  
+**Methods:** Dask distributed computing, full pipeline scaling  
+**Status:** Manuscript in preparation with Dr. Bahareh Rahmani, 
+Saint Louis University
+
+---
 
 ## Data
-Data sourced from the OASIS Longitudinal Dataset (oasis-brains.org).  
-Download instructions: [link]  
-Note: Raw data is not included in this repository.
+- **OASIS-1** (Cross-sectional): oasis-brains.org/oasis-1 — publicly available
+- **OASIS-2** (Longitudinal): oasis-brains.org/oasis-2 — publicly available
+- **OASIS-3 & 4**: Requires credentialed access at oasis-brains.org
+- Raw data files for OASIS-1 and OASIS-2 are included in `/data` 
+  (sourced from Kaggle — publicly available)
 
-## How to run
+## How to Run
+
+### R Analysis (Semester 1)
+1. Install R and RStudio
+2. Open `notebooks/01_statistical_analysis.Rmd`
+3. Data is included in `/data/oasis_cross_sectional.xlsx`
+4. Knit the document to reproduce all analyses
+
+### Python Analysis (Semester 2)
 1. Clone the repo
-2. Download OASIS data and place in /data
-3. pip install -r requirements.txt
-4. Open notebooks/ in order (01 → 02 → 03)
+2. `pip install -r requirements.txt`
+3. Open notebooks in order: `02` → `03` → `04` → `05` → `06`
+4. Data is included in `/data/oasis_longitudinal.xlsx`
 
-## Project structure
-[paste the folder tree from Step 3]
-
-## Contact
-Nikhitha Chaparla | nikhitha.nikki.chaparla@gmail.com  
-linkedin.com/in/nikhithachaparla-a33247b7
+## Project Structure
