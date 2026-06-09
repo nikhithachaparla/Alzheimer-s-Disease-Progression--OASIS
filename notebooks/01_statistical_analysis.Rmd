@@ -1,0 +1,299 @@
+############
+Project: Group Project
+Purpose: To exmanine relationship between age, CDR, nWBV and Alzheimer disease
+Author: Nikhitha Chaparla, Ruthwick Simon Singidi, Mounika Mandava
+Edit Date: 04/25/2025
+External Data Files Used: OASIS dataset from Kaggle (CSV file downloaded) Link: https://www.kaggle.com/datasets/jboysen/mri-and-alzheimers
+############
+
+(ref:scatterplot-cap) = "Scatterplot showing the relationship between Age and normalized Whole Brain Volume (nWBV) by Diagnosis group."
+(ref:boxplot-cap) = "Boxplot displaying nWBV distribution across CDR categories."
+(ref:barplot-cap) = "Bar plot of Sex distribution by Diagnosis group."
+(ref:desc-table-cap) = "Descriptive Statistics of Participants by Diagnosis Group."
+
+# Introduction
+
+Alzheimer's disease (AD) is a progressive neurodegenerative disorder. This study uses the Open Access Series of Imaging Studies (OASIS) dataset to examine the relationships between age, clinical dementia rating (CDR), normalized whole-brain volume (nWBV), and covariates including sex, education, MMSE, and eTIV.
+
+# Methods
+
+## Data Preparation
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(car)
+library(gt)
+library(webshot2)
+library(ggpubr)
+library(broom)
+library(bookdown)
+
+# Load data
+data <- read.csv("data/oasis_cross_sectional.csv")
+
+# Clean and rename
+data <- data %>%
+  rename(
+    Sex = `M.F`,
+    Education = Educ,
+    MMSE = MMSE,
+    CDR = CDR,
+    eTIV = eTIV,
+    nWBV = nWBV
+  )
+
+# Create Diagnosis variable
+data <- data %>%
+  mutate(
+    Diagnosis = case_when(
+      CDR == 0 ~ "Normal",
+      CDR > 0 ~ "AD",
+      TRUE ~ NA_character_
+    )
+  )
+
+# Factor variables
+data$Diagnosis <- factor(data$Diagnosis, levels = c("Normal", "AD"))
+data$Sex <- factor(data$Sex, levels = c("M", "F"))
+data$CDR <- factor(data$CDR)
+```
+
+#Handling of Missing Data
+Analyses were conducted using complete case methods. For descriptive statistics, missing values were excluded using na.rm = TRUE. For inferential analyses (t-tests, correlations, ANOVA, and regression models), functions automatically excluded cases with missing relevant variables. Given the low proportion of missing data, imputation was not required.
+
+#Results
+##Descriptive Statistics
+
+```{r}
+desc_table <- data %>%
+  select(Age, Education, MMSE, eTIV, nWBV, Sex, Diagnosis) %>%
+  group_by(Diagnosis) %>%
+  summarize(
+    Age_mean = mean(Age, na.rm = TRUE),
+    Age_sd = sd(Age, na.rm = TRUE),
+    Education_mean = mean(Education, na.rm = TRUE),
+    Education_sd = sd(Education, na.rm = TRUE),
+    MMSE_mean = mean(MMSE, na.rm = TRUE),
+    MMSE_sd = sd(MMSE, na.rm = TRUE),
+    eTIV_mean = mean(eTIV, na.rm = TRUE),
+    eTIV_sd = sd(eTIV, na.rm = TRUE),
+    nWBV_mean = mean(nWBV, na.rm = TRUE),
+    nWBV_sd = sd(nWBV, na.rm = TRUE),
+    Sex_Female_n = sum(Sex == "F", na.rm = TRUE),
+    Sex_Male_n = sum(Sex == "M", na.rm = TRUE)
+  )
+
+desc_table_gt <- desc_table %>%
+  gt() %>%
+  tab_spanner(label = "Continuous Variables", 
+              columns = matches("mean|sd")) %>%
+  tab_spanner(label = "Sex Distribution",
+              columns = matches("Sex_")) %>%
+  fmt_number(decimals = 2) %>%
+  tab_footnote("AD = Alzheimer's Disease group")
+
+desc_table_gt
+```
+##Bivariate Analyses
+
+```{r}
+t_test_result <- t.test(nWBV ~ Diagnosis, data = data)
+
+```
+
+
+```{r}
+t_test_result %>%
+  tidy() %>%
+  select(estimate, conf.low, conf.high, statistic, p.value) %>%
+  mutate(across(where(is.numeric), ~ signif(., 3))) %>%
+  gt() %>%
+  cols_label(
+    estimate = "Mean Difference",
+    conf.low = "95% CI (Low)",
+    conf.high = "95% CI (High)",
+    statistic = "t Statistic",
+    p.value = "p-value"
+  ) %>%
+  tab_caption("Table 2. Independent t-test results comparing nWBV between Normal and AD groups.")
+
+```
+
+#"Independent t-test: nWBV ~ Diagnosis"
+
+```{r}
+t_test_result <- t.test(nWBV ~ Diagnosis, data = data)
+t_test_result
+
+# Calculate standard deviation of nWBV for Normal group
+sd(data$nWBV[data$Diagnosis == "Normal"], na.rm = TRUE)
+
+# Calculate standard deviation of nWBV for AD group
+sd(data$nWBV[data$Diagnosis == "AD"], na.rm = TRUE)
+
+
+```
+#Interpretation:
+The t-test revealed a statistically significant difference in nWBV between Normal and AD groups (p < 0.001), with AD individuals having lower average brain volume.
+
+#"Assumption Checking"
+
+```{r}
+# t-test assumptions
+cat("\nT-test assumptions:\n")
+shapiro.test(data$nWBV[data$Diagnosis=="Normal"])
+shapiro.test(data$nWBV[data$Diagnosis=="AD"])
+leveneTest(nWBV ~ Diagnosis, data=data)
+```
+
+
+#"Pearson Correlation: Age vs nWBV"
+
+```{r}
+cor_test_result <- cor.test(data$Age, data$nWBV, use = "complete.obs")
+cor_test_result
+
+cor.test(data$Age[data$Diagnosis == "Normal"], data$nWBV[data$Diagnosis == "Normal"])
+cor.test(data$Age[data$Diagnosis == "AD"], data$nWBV[data$Diagnosis == "AD"])
+
+
+```
+#Interpretation:
+A strong negative correlation was found between age and nWBV (p < 0.001), indicating that brain volume declines with increasing age.
+
+#"Chi-square Test: Sex vs Diagnosis"
+
+```{r}
+sex_diag_table <- table(data$Sex, data$Diagnosis)
+chisq_result <- chisq.test(sex_diag_table)
+chisq_result
+
+```
+#Interpretation:
+The chi-square test showed no significant association between sex and diagnosis group, suggesting that sex distribution is relatively balanced across groups.
+
+#"ANOVA: nWBV ~ CDR Category"
+
+```{r}
+anova_model <- aov(nWBV ~ CDR, data = data)
+summary(anova_model)
+
+```
+#Interpretation:
+ANOVA revealed a highly significant difference in nWBV across CDR categories (F(3,231) = 27.65, p < 0.001), indicating that brain volume systematically declines as dementia severity increases.
+
+#"Post-hoc Test"
+
+```{r}
+tukey_result <- TukeyHSD(anova_model)
+tukey_result
+
+```
+#Interpretation:
+Tukey’s multiple comparison test revealed that individuals with CDR 0.5, 1, and 2 had significantly lower nWBV compared to those with CDR 0 (all p < 0.05). The largest decline in brain volume was observed between CDR 0 and CDR 2 (diff = -0.085, p = 0.022). No significant differences were found between adjacent CDR groups (e.g., 1 vs. 0.5, 2 vs. 1), suggesting that the most substantial volume loss occurs early in the disease progression.
+
+##Multivariate Regression
+###Model 1: Interaction Model
+
+```{r}
+# Model 1: Interaction (Age × CDR)
+model1 <- lm(nWBV ~ Age * Diagnosis, data = data)
+summary(model1)
+
+# Model 2: Full covariates
+model2 <- lm(nWBV ~ Age * Diagnosis + Sex + Education + MMSE + eTIV, data = data)
+summary(model2)
+
+# Compare models (Likelihood Ratio Test)
+anova(model1, model2)
+
+# Check assumptions
+plot(model2, which = 1)  # Linearity/Homoscedasticity
+qqPlot(model2$residuals) # Normality
+vif(model2)              # Multicollinearity
+
+```
+#Interpretation:
+In the adjusted regression model, Age, MMSE, and eTIV were statistically significant predictors of normalized whole-brain volume (nWBV) (p < 0.05). Age was strongly negatively associated with brain volume, while MMSE and eTIV showed positive associations. Diagnosis status and the Age × Diagnosis interaction term were not statistically significant, suggesting that the effect of age on nWBV does not differ meaningfully between cognitively normal individuals and those with Alzheimer’s disease. Model assumptions of normality, linearity, and homoscedasticity appeared reasonably satisfied based on residual plots.
+
+```{r}
+model2 %>%
+  tidy(conf.int = TRUE) %>%
+  mutate(across(where(is.numeric), ~ signif(., 3))) %>%
+  gt() %>%
+  cols_label(
+    term = "Predictor",
+    estimate = "Estimate",
+    std.error = "Std. Error",
+    statistic = "t Statistic",
+    p.value = "p-value",
+    conf.low = "95% CI (Low)",
+    conf.high = "95% CI (High)"
+  ) %>%
+  tab_caption("Table 3. Regression coefficients from the adjusted linear model predicting nWBV.")
+```
+#Interpretation:
+Age has a highly significant negative association with nWBV (β = –0.0025, p < .001), indicating that brain volume decreases with age. Diagnosis alone is not statistically significant (p = .23), but MMSE and eTIV are. The Age × Diagnosis interaction is not significant.
+
+```{r}
+#Coefficient Plot
+tidy_model <- tidy(model2, conf.int = TRUE)
+
+# Remove interaction term if not visually informative
+ggplot(tidy_model, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.1) +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Regression Coefficients for Predictors of nWBV",
+       x = "Predictor", y = "Coefficient Estimate (95% CI)")
+```
+
+###Visualizations
+#"Scatterplot: Age vs nWBV by Diagnosis"
+
+```{r}
+ggplot(data %>% filter(!is.na(Diagnosis)), aes(x = Age, y = nWBV, color = Diagnosis)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Age (years)", y = "Normalized Whole Brain Volume") +
+  theme_minimal()
+```
+#Interpretation:
+The scatterplot illustrates a strong negative relationship between age and normalized whole-brain volume (nWBV) in both diagnostic groups. As age increases, nWBV decreases. The slope is slightly steeper in the Alzheimer's disease (AD) group, indicating that individuals with AD may experience a faster rate of brain volume loss with aging compared to cognitively normal individuals. However, this difference was not statistically significant in the regression interaction term.
+
+#"Boxplot: nWBV by CDR Category"
+
+```{r}
+# Get ANOVA p-value for annotation
+aov_summary <- summary(anova_model)
+p_value <- signif(aov_summary[[1]]$`Pr(>F)`[1], 3)
+
+# Boxplot with ANOVA p-value annotated
+ggplot(data %>% filter(!is.na(CDR)), aes(x = CDR, y = nWBV)) +
+  geom_boxplot() +
+  labs(x = "CDR Category", y = "Normalized Whole Brain Volume",
+       subtitle = paste0("ANOVA p-value: ", p_value)) +
+  theme_minimal()
+```
+#Interpretation:
+The boxplot shows a clear decline in normalized whole-brain volume (nWBV) with increasing Clinical Dementia Rating (CDR) severity. Participants with a CDR of 0 (normal) have the highest brain volumes, while those with a CDR of 2 (moderate dementia) have the lowest. ANOVA results indicate that these group differences are highly significant (p < 0.001), confirming that greater dementia severity is associated with greater brain atrophy.
+
+#"Bar Plot: Sex Distribution by Diagnosis"
+
+```{r}
+ggplot(data %>% filter(!is.na(Diagnosis)), aes(x = Diagnosis, fill = Sex)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Diagnosis", y = "Count", title = "Sex Distribution by Diagnosis (Complete Cases)") +
+  theme_minimal()
+
+```
+#Interpretation:
+The bar chart presents the distribution of sex across diagnosis groups. Among cognitively normal individuals, there are more females than males. In the Alzheimer's disease group, the distribution is more balanced. A chi-square test found no statistically significant association between sex and diagnosis group (p = 0.055), indicating that sex distribution does not differ significantly between the two groups.
+
+
+###SUMMARY:
+"The analysis confirms that both age and Alzheimer's diagnosis are significantly associated with normalized whole-brain volume (nWBV). Bivariate analyses suggested a steeper decline in brain volume among individuals with AD compared to normal aging. However, multivariate regression indicated that while AD diagnosis predicts lower overall nWBV, the rate of age-related decline does not significantly differ by diagnosis group. These findings emphasize the importance of early detection and suggest that future research should explore additional mediators such as cardiovascular health, cognitive reserve, and genetics.
+
+".
+
