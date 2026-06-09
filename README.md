@@ -20,16 +20,11 @@ dementia progression in a real-world longitudinal cohort?
 **Methods:** t-test, chi-square, ANOVA, Tukey post-hoc, multivariate regression
 
 ### Key Findings
-- nWBV was significantly lower in the AD group vs cognitively normal 
-  individuals (p < 0.001), confirming brain atrophy as a core AD biomarker
-- Strong negative correlation between age and nWBV (p < 0.001) — brain 
-  volume declines systematically with age
-- ANOVA confirmed nWBV declines across CDR severity categories 
-  (F(3,231) = 27.65, p < 0.001); largest decline between CDR 0 and CDR 2
-- Age, MMSE, and eTIV were significant independent predictors of nWBV 
-  in multivariate regression; sex was not significantly associated with diagnosis
-- Assumption testing conducted: Shapiro-Wilk normality, Levene's equality 
-  of variances, VIF for multicollinearity
+- nWBV significantly lower in AD group vs normal (p < 0.001)
+- Strong negative correlation between age and nWBV (p < 0.001)
+- ANOVA confirmed nWBV declines across CDR categories 
+  (F(3,231) = 27.65, p < 0.001)
+- Age, MMSE, and eTIV significant independent predictors of nWBV
 
 ---
 
@@ -38,15 +33,13 @@ dementia progression in a real-world longitudinal cohort?
 **Methods:** KNN, Naive Bayes, SVM (RBF kernel), Random Forest
 
 ### Key Findings
-- RBF SVM achieved best reliable accuracy (85.33%) with strong specificity 
-  for cognitively normal classification (97% recall for Nondemented)
-- KNN: 82.7% accuracy | Naive Bayes: 81.3% accuracy
-- Random Forest showed 100% accuracy — identified as likely overfitting 
-  on small dataset; results interpreted with caution
-- nWBV and MMSE confirmed as strongest predictive features across all models
-- Converted group (later developed dementia) showed intermediate atrophy 
-  at baseline — validates nWBV as a potential early predictive biomarker
-
+- Random Forest achieved best performance: 96% accuracy, ROC-AUC 0.960
+- All models performed strongly: KNN 93.3%, Naive Bayes 94.7%, SVM 94.7%
+- CDR was strongest predictor (51.9% feature importance), followed by 
+  MMSE (16.6%) and nWBV (7.9%)
+- Cross-validation confirmed no overfitting — consistent with holdout results
+- Gender showed lowest importance (1.3%), consistent with Semester 1 
+  chi-square finding of no significant sex difference in diagnosis
 ---
 
 ## Semester 3 — Scaling to Full OASIS I–IV (In Progress)
@@ -83,10 +76,9 @@ Saint Louis University
 notebooks/
 01_statistical_analysis.Rmd     ← R: stats analysis (Semester 1)
 02_regression_analysis.ipynb    ← Python: regression (Semester 2)
-03_ml_classification.html       ← ML classification results
-04_model_validation.html        ← Model validation
-05_scaling_dask.html            ← Dask scaling (Semester 3)
-06_results_summary.html         ← Final results summary
+03_ml_classification.ipynb      ← ML classification results
+04_scaling_dask.html            ← Dask scaling (Semester 3)
+
 data/
 oasis_cross_sectional.xlsx      ← OASIS-1 dataset
 oasis_longitudinal.xlsx         ← OASIS-2 dataset
